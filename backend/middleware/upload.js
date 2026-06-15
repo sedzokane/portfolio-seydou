@@ -1,49 +1,56 @@
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
 
-const ensureDir = (dir) => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-};
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-const storage = (subfolder) =>
-  multer.diskStorage({
-    destination: (req, file, cb) => {
-      const dir = path.join(process.cwd(), "uploads", subfolder);
-      ensureDir(dir);
-      cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      const base = path.basename(file.originalname, ext).replace(/\s+/g, "-");
-      cb(null, `${base}-${Date.now()}${ext}`);
-    },
-  });
+// Stockage images de projets
+const projectStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder:         "portfolio/projects",
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    transformation: [{ width: 1200, height: 800, crop: "limit" }],
+  },
+});
 
-// Upload d'images de projets (jpg, png, webp...)
+// Stockage logos de compétences
+const skillStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder:         "portfolio/skills",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "svg"],
+  },
+});
+
+// Stockage CV — Cloudinary ne gère pas les PDF en upload direct
+// On garde multer mémoire pour le CV et on upload manuellement
+import { CloudinaryStorage as CS } from "multer-storage-cloudinary";
+
+const cvStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder:         "portfolio/cv",
+    allowed_formats: ["pdf"],
+    resource_type:  "raw",
+  },
+});
+
 export const uploadProjectImage = multer({
-  storage: storage("projects"),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 Mo
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) cb(null, true);
-    else cb(new Error("Seules les images sont autorisées"));
-  },
+  storage: projectStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Upload de logo de compétence (image)
 export const uploadSkillLogo = multer({
-  storage: storage("skills"),
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2 Mo
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) cb(null, true);
-    else cb(new Error("Seules les images sont autorisées"));
-  },
+  storage: skillStorage,
+  limits: { fileSize: 2 * 1024 * 1024 },
 });
+
 export const uploadCV = multer({
-  storage: storage("cv"),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 Mo
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === "application/pdf") cb(null, true);
-    else cb(new Error("Le CV doit être un fichier PDF"));
-  },
+  storage: cvStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
