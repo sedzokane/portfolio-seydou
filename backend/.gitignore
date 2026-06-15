@@ -1,0 +1,8 @@
+node_modules/
+.env
+uploads/projects/*
+uploads/cv/*
+uploads/skills/*
+!uploads/projects/.gitkeep
+!uploads/cv/.gitkeep
+!uploads/skills/.gitkeep
