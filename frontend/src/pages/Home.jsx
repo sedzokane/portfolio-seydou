@@ -30,6 +30,15 @@ const Home = () => {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+  const handlePhoneKeyDown = (e) => {
+    const allowed = [
+      "Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight",
+      "Home", "End", "+", " ",
+    ];
+    if (allowed.includes(e.key)) return;
+    if (!/^\d$/.test(e.key)) e.preventDefault();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus("sending");
@@ -45,7 +54,6 @@ const Home = () => {
   };
 
   return (
-    // pb-16 sur mobile pour laisser place à la bottom nav
     <div className="min-h-screen flex flex-col pb-16 md:pb-0">
       <Navbar />
       <main className="flex-1">
@@ -74,7 +82,7 @@ const Home = () => {
                   Je travaille principalement avec la stack <span className="text-accent">MERN</span> (MongoDB,
                   Express, React, Node.js) pour les applications web modernes, <span className="text-accent">Django</span> /
                   Python pour les API robustes et les back-offices, <span className="text-accent">React Native
-                  / Expo</span> pour les applications mobiles iOS &amp; Android, et <span className="text-accent">WordPress</span> pour
+                  / Expo</span> pour les applications mobiles iOS et Android, et <span className="text-accent">WordPress</span> pour
                   les sites vitrines, blogs et e-commerce sur-mesure.
                 </p>
                 <p>
@@ -116,7 +124,6 @@ const Home = () => {
                     <h3 className="font-mono text-xs uppercase tracking-wider text-accent2 mb-6">
                       {categoryLabels[group.cat]}
                     </h3>
-                    {/* Grille adaptative : 3 sur mobile, 4 sur sm, 5+ sur lg */}
                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 sm:gap-6">
                       {group.items.map((skill) => (
                         <SkillBar key={skill._id} skill={skill} />
@@ -163,39 +170,52 @@ const Home = () => {
             />
           </Reveal>
           <Reveal delay={100}>
-            {/* Mobile : colonne unique / Desktop : 2 colonnes */}
             <form onSubmit={handleSubmit} className="flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-5">
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="font-mono text-xs text-muted flex items-center gap-1.5" htmlFor="fullName">
                     <User size={13} /> nom complet
                   </label>
-                  <input id="fullName" name="fullName" required value={form.fullName} onChange={handleChange}
+                  <input
+                    id="fullName" name="fullName" required
+                    value={form.fullName} onChange={handleChange}
                     placeholder="votre nom complet"
-                    className="bg-surface border border-border rounded px-3 py-3 text-sm focus:border-accent outline-none transition-colors" />
+                    className="bg-surface border border-border rounded px-3 py-3 text-sm focus:border-accent outline-none transition-colors"
+                  />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="font-mono text-xs text-muted flex items-center gap-1.5" htmlFor="email">
                     <Mail size={13} /> email
                   </label>
-                  <input id="email" name="email" type="email" required value={form.email} onChange={handleChange}
+                  <input
+                    id="email" name="email" type="email" required
+                    value={form.email} onChange={handleChange}
                     placeholder="votre@email.com"
-                    className="bg-surface border border-border rounded px-3 py-3 text-sm focus:border-accent outline-none transition-colors" />
+                    className="bg-surface border border-border rounded px-3 py-3 text-sm focus:border-accent outline-none transition-colors"
+                  />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="font-mono text-xs text-muted flex items-center gap-1.5" htmlFor="phone">
                     <Phone size={13} /> whatsapp / téléphone
                   </label>
-                  <input id="phone" name="phone" value={form.phone} onChange={handleChange}
+                  <input
+                    id="phone" name="phone"
+                    value={form.phone} onChange={handleChange}
+                    onKeyDown={handlePhoneKeyDown}
                     placeholder="votre numéro"
-                    className="bg-surface border border-border rounded px-3 py-3 text-sm focus:border-accent outline-none transition-colors" />
+                    inputMode="tel"
+                    className="bg-surface border border-border rounded px-3 py-3 text-sm focus:border-accent outline-none transition-colors"
+                  />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="font-mono text-xs text-muted flex items-center gap-1.5" htmlFor="service">
                     <Briefcase size={13} /> service souhaité
                   </label>
-                  <select id="service" name="service" value={form.service} onChange={handleChange}
-                    className="bg-surface border border-border rounded px-3 py-3 text-sm focus:border-accent outline-none appearance-none transition-colors">
+                  <select
+                    id="service" name="service"
+                    value={form.service} onChange={handleChange}
+                    className="bg-surface border border-border rounded px-3 py-3 text-sm focus:border-accent outline-none appearance-none transition-colors"
+                  >
                     <option value="">Sélectionner...</option>
                     <option value="Application web (MERN)">Application web (MERN)</option>
                     <option value="API / Backend Django">API / Backend Django</option>
@@ -213,15 +233,20 @@ const Home = () => {
                 <label className="font-mono text-xs text-muted flex items-center gap-1.5" htmlFor="message">
                   <MessageSquare size={13} /> message
                 </label>
-                <textarea id="message" name="message" required value={form.message} onChange={handleChange}
+                <textarea
+                  id="message" name="message" required
+                  value={form.message} onChange={handleChange}
                   placeholder="Décrivez votre projet ou votre besoin..."
-                  className="flex-1 bg-surface border border-border rounded px-3 py-3 text-sm focus:border-accent outline-none resize-none transition-colors min-h-[160px] md:min-h-[280px]" />
+                  className="flex-1 bg-surface border border-border rounded px-3 py-3 text-sm focus:border-accent outline-none resize-none transition-colors min-h-[160px] md:min-h-[280px]"
+                />
               </div>
 
-              {/* Bouton — pleine largeur sur mobile */}
+              {/* Bouton */}
               <div className="md:col-span-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <button type="submit" disabled={status === "sending"}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-accent text-bg font-mono text-sm font-semibold rounded hover:bg-accent/90 transition-all disabled:opacity-50">
+                <button
+                  type="submit" disabled={status === "sending"}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-accent text-bg font-mono text-sm font-semibold rounded hover:bg-accent/90 transition-all disabled:opacity-50"
+                >
                   {status === "sending" ? "Envoi..." : "Envoyer le message"}
                   {status !== "sending" && <Send size={16} />}
                 </button>

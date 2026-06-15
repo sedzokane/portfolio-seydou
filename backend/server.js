@@ -22,10 +22,13 @@ const isProd = process.env.NODE_ENV === "production";
 
 const app = express();
 
+// Indispensable sur Render — fait confiance au proxy reverse
+app.set("trust proxy", 1);
+
 // Sécurité HTTP de base (headers)
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" }, // permet de charger les images uploadées depuis le frontend
+    crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
 
