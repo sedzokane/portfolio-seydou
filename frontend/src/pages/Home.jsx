@@ -7,7 +7,7 @@ import api from "../api/axios.js";
 import Navbar from "../components/Navbar.jsx";
 import Hero from "../components/Hero.jsx";
 import SectionHeader from "../components/SectionHeader.jsx";
-import SkillBar, { categoryLabels, categoryOrder } from "../components/SkillBar.jsx";
+import SkillBar from "../components/SkillBar.jsx";
 import ProjectCard from "../components/ProjectCard.jsx";
 import Reveal from "../components/Reveal.jsx";
 import Footer from "../components/Footer.jsx";
@@ -24,17 +24,10 @@ const Home = () => {
     api.get("/skills").then((res) => setSkills(res.data)).catch(() => {});
   }, []);
 
-  const grouped = categoryOrder
-    .map((cat) => ({ cat, items: skills.filter((s) => s.category === cat) }))
-    .filter((g) => g.items.length > 0);
-
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handlePhoneKeyDown = (e) => {
-    const allowed = [
-      "Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight",
-      "Home", "End", "+", " ",
-    ];
+    const allowed = ["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Home", "End", "+", " "];
     if (allowed.includes(e.key)) return;
     if (!/^\d$/.test(e.key)) e.preventDefault();
   };
@@ -114,25 +107,16 @@ const Home = () => {
               subtitle="Technologies et outils que j'utilise au quotidien."
             />
           </Reveal>
-          {grouped.length === 0 ? (
+          {skills.length === 0 ? (
             <p className="font-mono text-muted text-sm">Aucune compétence ajoutée pour le moment.</p>
           ) : (
-            <div className="space-y-10">
-              {grouped.map((group, gi) => (
-                <Reveal key={group.cat} delay={gi * 80}>
-                  <div>
-                    <h3 className="font-mono text-xs uppercase tracking-wider text-accent2 mb-6">
-                      {categoryLabels[group.cat]}
-                    </h3>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 sm:gap-6">
-                      {group.items.map((skill) => (
-                        <SkillBar key={skill._id} skill={skill} />
-                      ))}
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
+            <Reveal delay={80}>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-4 sm:gap-6">
+                {skills.map((skill) => (
+                  <SkillBar key={skill._id} skill={skill} />
+                ))}
+              </div>
+            </Reveal>
           )}
         </section>
 
@@ -228,7 +212,6 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Message */}
               <div className="flex flex-col gap-1.5">
                 <label className="font-mono text-xs text-muted flex items-center gap-1.5" htmlFor="message">
                   <MessageSquare size={13} /> message
@@ -241,7 +224,6 @@ const Home = () => {
                 />
               </div>
 
-              {/* Bouton */}
               <div className="md:col-span-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   type="submit" disabled={status === "sending"}

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { FolderKanban, Code2, FileText, Mail, LogOut, ExternalLink } from "lucide-react";
 import api from "../api/axios.js";
 import { useAuth } from "../context/AuthContext.jsx";
-import { categoryLabels, categoryOrder } from "../components/SkillBar.jsx";
 
 const tabs = [
   { id: "projects", label: "projets", icon: FolderKanban },
@@ -14,7 +13,7 @@ const tabs = [
 const emptyProject = {
   title: "", description: "", technologies: "", githubUrl: "", liveUrl: "", featured: false, order: 0,
 };
-const emptySkill = { name: "", category: "fullstack", level: 70, icon: "", order: 0 };
+const emptySkill = { name: "", icon: "", order: 0 };
 
 const AdminDashboard = () => {
   const { admin, logout } = useAuth();
@@ -244,8 +243,6 @@ const SkillsTab = () => {
     setMsg("");
     const data = new FormData();
     data.append("name", form.name);
-    data.append("category", form.category);
-    data.append("level", form.level);
     data.append("icon", form.icon);
     data.append("order", form.order);
     if (logoFile) data.append("logo", logoFile);
@@ -267,7 +264,7 @@ const SkillsTab = () => {
 
   const startEdit = (s) => {
     setEditingId(s._id);
-    setForm({ name: s.name, category: s.category, level: s.level, icon: s.icon || "", order: s.order });
+    setForm({ name: s.name, icon: s.icon || "", order: s.order });
     setLogoFile(null);
     setLogoPreview(s.logo || null);
   };
@@ -282,27 +279,16 @@ const SkillsTab = () => {
     <div className="grid lg:grid-cols-2 gap-8">
       <div>
         <h2 className="font-display text-xl font-bold mb-4">
-          {editingId ? "Modifier la compétence" : "Ajouter une compétence / technologie apprise"}
+          {editingId ? "Modifier la compétence" : "Ajouter une compétence"}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4 border border-border rounded-lg bg-surface p-5">
           <Field label="nom">
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="ex: React, Django, WordPress..." className={inputClass} />
           </Field>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="catégorie">
-              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputClass}>
-                {categoryOrder.map((c) => (
-                  <option key={c} value={c}>{categoryLabels[c]}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="emoji de secours (si pas de logo)">
-              <input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} placeholder="⚙️" className={inputClass} />
-            </Field>
-          </div>
-
-          {/* Upload logo avec aperçu */}
-          <Field label="logo de la technologie (image PNG/SVG recommandé)">
+          <Field label="emoji de secours (si pas de logo)">
+            <input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} placeholder="⚙️" className={inputClass} />
+          </Field>
+          <Field label="logo de la technologie (PNG/SVG recommandé)">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded border border-border bg-surface2 flex items-center justify-center shrink-0 overflow-hidden">
                 {logoPreview ? (
@@ -314,22 +300,9 @@ const SkillsTab = () => {
               <input type="file" accept="image/*" onChange={handleLogoChange} className="font-mono text-xs text-muted flex-1" />
             </div>
           </Field>
-
-          <Field label={`niveau de maîtrise : ${form.level}%`}>
-            <div className="flex items-center gap-3">
-              <input
-                type="range" min="0" max="100" value={form.level}
-                onChange={(e) => setForm({ ...form, level: Number(e.target.value) })}
-                className="flex-1 accent-[#34D399]"
-              />
-              <span className="font-mono text-xs text-accent w-10 text-right">{form.level}%</span>
-            </div>
-          </Field>
-
           <Field label="ordre d'affichage">
             <input type="number" value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })} className={inputClass} />
           </Field>
-
           <div className="flex items-center gap-3">
             <button type="submit" className="px-5 py-2.5 bg-accent text-bg font-mono text-sm font-semibold rounded hover:bg-accent/90 transition-colors">
               {editingId ? "Enregistrer" : "Ajouter"}
@@ -347,41 +320,24 @@ const SkillsTab = () => {
       <div>
         <h2 className="font-display text-xl font-bold mb-4">Compétences existantes ({skills.length})</h2>
         <div className="space-y-2">
-          {categoryOrder.map((cat) => {
-            const group = skills.filter((s) => s.category === cat);
-            if (group.length === 0) return null;
-            return (
-              <div key={cat}>
-                <p className="font-mono text-xs uppercase tracking-wider text-accent2 mb-2 mt-4">
-                  {categoryLabels[cat]}
-                </p>
-                {group.map((s) => (
-                  <div key={s._id} className="border border-border rounded-lg bg-surface p-3 flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded bg-surface2 border border-border flex items-center justify-center shrink-0 overflow-hidden p-1">
-                      {s.logo ? (
-                        <img src={s.logo} alt={s.name} className="w-full h-full object-contain" />
-                      ) : (
-                        <span className="text-lg">{s.icon || "•"}</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-mono text-sm font-medium truncate">{s.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex-1 h-1.5 rounded-full bg-surface2 overflow-hidden">
-                          <div className="h-full bg-accent transition-all" style={{ width: `${s.level}%` }} />
-                        </div>
-                        <span className="font-mono text-xs text-muted shrink-0">{s.level}%</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1 font-mono text-xs shrink-0">
-                      <button onClick={() => startEdit(s)} className="text-accent hover:underline">modifier</button>
-                      <button onClick={() => remove(s._id)} className="text-danger hover:underline">supprimer</button>
-                    </div>
-                  </div>
-                ))}
+          {skills.map((s) => (
+            <div key={s._id} className="border border-border rounded-lg bg-surface p-3 flex items-center gap-3">
+              <div className="w-10 h-10 rounded bg-surface2 border border-border flex items-center justify-center shrink-0 overflow-hidden p-1">
+                {s.logo ? (
+                  <img src={s.logo} alt={s.name} className="w-full h-full object-contain" />
+                ) : (
+                  <span className="text-lg">{s.icon || "•"}</span>
+                )}
               </div>
-            );
-          })}
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-sm font-medium truncate">{s.name}</p>
+              </div>
+              <div className="flex flex-col gap-1 font-mono text-xs shrink-0">
+                <button onClick={() => startEdit(s)} className="text-accent hover:underline">modifier</button>
+                <button onClick={() => remove(s._id)} className="text-danger hover:underline">supprimer</button>
+              </div>
+            </div>
+          ))}
           {skills.length === 0 && <p className="font-mono text-muted text-sm">Aucune compétence pour le moment.</p>}
         </div>
       </div>
@@ -438,9 +394,7 @@ const CVTab = () => {
           <Field label="nouveau CV (PDF uniquement)">
             <input type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files[0])} className="font-mono text-xs text-muted" />
           </Field>
-          {file && (
-            <p className="font-mono text-xs text-muted">Fichier sélectionné : {file.name}</p>
-          )}
+          {file && <p className="font-mono text-xs text-muted">Fichier sélectionné : {file.name}</p>}
           <button
             type="submit"
             disabled={!file || loading}
@@ -461,7 +415,7 @@ const CVTab = () => {
 /* ---------------- Messages ---------------- */
 const MessagesTab = () => {
   const [messages, setMessages] = useState([]);
-  const [filter, setFilter] = useState("all"); // all | unread | read
+  const [filter, setFilter] = useState("all");
 
   const load = () => api.get("/messages").then((res) => setMessages(res.data));
   useEffect(() => { load(); }, []);
@@ -502,9 +456,7 @@ const MessagesTab = () => {
               key={f}
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded border transition-colors ${
-                filter === f
-                  ? "border-accent text-accent bg-accent/10"
-                  : "border-border text-muted hover:text-text"
+                filter === f ? "border-accent text-accent bg-accent/10" : "border-border text-muted hover:text-text"
               }`}
             >
               {f === "all" ? "tous" : f === "unread" ? "non lus" : "lus"}
@@ -512,7 +464,6 @@ const MessagesTab = () => {
           ))}
         </div>
       </div>
-
       <div className="space-y-3">
         {filtered.map((m) => (
           <div
@@ -536,18 +487,12 @@ const MessagesTab = () => {
               <div className="flex flex-col gap-1.5 font-mono text-xs shrink-0 items-end">
                 <span className="text-muted">{new Date(m.createdAt).toLocaleDateString("fr-FR")}</span>
                 {!m.read && (
-                  <button onClick={() => markRead(m._id)} className="text-accent hover:underline">
-                    marquer lu
-                  </button>
+                  <button onClick={() => markRead(m._id)} className="text-accent hover:underline">marquer lu</button>
                 )}
-                <button onClick={() => remove(m._id)} className="text-danger hover:underline">
-                  supprimer
-                </button>
+                <button onClick={() => remove(m._id)} className="text-danger hover:underline">supprimer</button>
               </div>
             </div>
-            <p className="text-muted text-sm whitespace-pre-wrap border-t border-border pt-2 mt-2">
-              {m.message}
-            </p>
+            <p className="text-muted text-sm whitespace-pre-wrap border-t border-border pt-2 mt-2">{m.message}</p>
           </div>
         ))}
         {filtered.length === 0 && (
